@@ -1,6 +1,6 @@
 image:
-  repository: ghcr.io/<votre-handle>/notif
-  tag: ""
+  repository: ghcr.io/maatrooo/notif
+  tag: "07db23c"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
