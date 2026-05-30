@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/maatrooo/planning
-  tag: "07db23c"
+  tag: "bb8864f"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
