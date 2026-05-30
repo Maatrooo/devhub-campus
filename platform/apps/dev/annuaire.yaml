@@ -1,8 +1,3 @@
-# Application ArgoCD : annuaire-dev
-#
-# Déploie le chart Helm de services/annuaire/chart dans le namespace devhub-dev.
-# Étape 5 (création manuelle) puis étape 6 (générée par la root).
-
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -12,34 +7,26 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: devhub
-
   source:
-    # TODO : URL de votre fork.
     repoURL: https://github.com/Maatrooo/devhub-campus.git
     targetRevision: main
-    # TODO : chemin vers le chart Helm du service.
     path: services/annuaire/chart
     helm:
-      # TODO : pointez vers le bon fichier de values.
-      # Indice : il y en a un par environnement.
       valueFiles:
         - values-dev.yaml
-
   destination:
     server: https://kubernetes.default.svc
     namespace: devhub-dev
-
   syncPolicy:
-      automated:
-        prune: false
-        selfHeal: true
-      syncOptions:
-        - CreateNamespace=true
-        - ServerSideApply=true
-        - RespectIgnoreDifferences=true
-
-    ignoreDifferences:
-      - group: apps
-        kind: Deployment
-        managedFieldsManagers:
-          - kube-controller-manager
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers:
+        - kube-controller-manager
