@@ -1,0 +1,38 @@
+# Root Application (pattern App of Apps).
+# C'est la SEULE Application créée à la main avec `kubectl apply`.
+# Elle surveille platform/apps/dev/ et crée toutes les Applications enfants.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: devhub
+
+  source:
+    repoURL: https://github.com/Maatrooo/devhub-campus.git
+    targetRevision: main
+    # On pointe vers le dossier des Applications enfants.
+    # IMPORTANT : ne pas pointer vers bootstrap/ (récursion infinie).
+    path: platform/apps/dev
+    directory:
+      recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    # La root vit dans argocd, elle crée des Application (ressources ArgoCD).
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      # prune:false sur la root : on ne veut pas supprimer une App enfant
+      # par accident si on fait une typo dans le chemin source.
+      prune: false
+      # selfHeal:true : si quelqu'un supprime une App enfant à la main,
+      # la root la recrée automatiquement.
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

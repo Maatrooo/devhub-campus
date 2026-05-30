@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: devhub
+  namespace: argocd
+spec:
+  description: Plateforme DevHub Campus
+
+  # Seuls ces dépôts sont autorisés comme source.
+  sourceRepos:
+    - https://github.com/Maatrooo/devhub-campus.git
+
+  # Destinations autorisées : cluster local + namespaces devhub-*
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: devhub-*
+    # La root Application déploie dans argocd lui-même (les App enfants).
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+
+  # Ressources cluster-scoped autorisées.
+  # On whitelist uniquement Namespace : ArgoCD doit pouvoir créer devhub-dev
+  # et devhub-preview-* via CreateNamespace=true.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  # Ressources namespace-scoped : tout autorisé (OK en TP).
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

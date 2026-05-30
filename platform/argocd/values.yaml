@@ -1,0 +1,54 @@
+# Values Helm pour installer ArgoCD (chart argo/argo-cd).
+# Consommé par `make argocd-install`.
+
+global:
+  domain: argocd.devhub.local
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    timeout.reconciliation: 180s
+    # Compte local non-admin pour les tests RBAC (étape 9).
+    accounts.developer: login, apiKey
+
+  rbac:
+    # Par défaut, aucun droit (principe du moindre privilège).
+    policy.default: ""
+    policy.csv: |
+      # Rôle developer : lecture de toutes les Apps du projet devhub,
+      # sync uniquement sur les Apps dont le nom contient "annuaire".
+      p, role:developer, applications, get,    devhub/*, allow
+      p, role:developer, applications, sync,   devhub/annuaire-*, allow
+      p, role:developer, applications, action/*, devhub/annuaire-*, allow
+
+      # platform-admin : tous les droits.
+      p, role:platform-admin, *, *, */*, allow
+
+      # Binding : le compte `developer` reçoit le rôle developer.
+      g, developer, role:developer
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: argocd.devhub.local
+    annotations:
+      nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    tls: false
+
+# notifications activées pour l'étape 9 (webhook en cas de sync échouée).
+notifications:
+  enabled: true
+  # Le secret contenant les tokens/URLs est créé séparément (ne pas commiter).
+  # Voir : kubectl create secret generic argocd-notifications-secret -n argocd ...
+
+controller:
+  resources:
+    requests: { cpu: "50m", memory: "256Mi" }
+    limits:   { cpu: "1",   memory: "1Gi" }
+
+repoServer:
+  resources:
+    requests: { cpu: "50m", memory: "128Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }

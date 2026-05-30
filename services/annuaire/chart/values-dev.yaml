@@ -1,0 +1,11 @@
+# Surcharges pour l'environnement de développement (namespace devhub-dev).
+# Ne contient QUE les différences par rapport à values.yaml.
+
+replicaCount: 1   # 1 seul pod en dev pour économiser les ressources
+
+ingress:
+  enabled: true
+  host: annuaire.devhub.local
+
+env:
+  LOG_LEVEL: debug

@@ -1,0 +1,52 @@
+# ApplicationSet : annuaire — previews par branche feature/*.
+#
+# Choix du generator : `git` (sur branches).
+# Justification : plus simple à mettre en place que pullRequest (pas besoin
+# de token GitHub pour le polling des branches). Le polling se fait toutes
+# les 3 min. Pour les PRs on préférerait pullRequest + webhook.
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: annuaire-preview
+  namespace: argocd
+spec:
+  generators:
+    - pullRequest:
+        github:
+          owner: Maatrooo
+          repo: devhub-campus
+          tokenRef:
+            secretName: github-token
+            key: token
+        requeueAfterSeconds: 180
+
+  template:
+    metadata:
+      # branch_slug : version normalisée (minuscules, slashes → tirets).
+      name: annuaire-preview-{{branch_slug}}
+      labels:
+        devhub.io/env: preview
+        devhub.io/service: annuaire
+    spec:
+      project: devhub
+      source:
+        repoURL: https://github.com/Maatrooo/devhub-campus.git
+        targetRevision: "{{branch}}"
+        path: services/annuaire/chart
+        helm:
+          valueFiles:
+            - values-preview.yaml
+          parameters:
+            # Surcharge l'ingress.host pour que chaque preview soit isolée.
+            - name: ingress.host
+              value: "annuaire-{{branch_slug}}.devhub.local"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: devhub-preview-{{branch_slug}}
+      syncPolicy:
+        automated:
+          prune: true       # indispensable : nettoie la preview quand la branche est supprimée
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
