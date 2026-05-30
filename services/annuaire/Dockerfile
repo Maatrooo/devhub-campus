@@ -6,7 +6,7 @@ WORKDIR /app
 
 # On copie package.json AVANT le code source pour profiter du cache Docker :
 # si le code change mais pas les deps, npm ci n'est pas rejoué.
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # Ensuite seulement on copie le code.
